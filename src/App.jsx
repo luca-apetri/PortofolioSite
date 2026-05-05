@@ -165,8 +165,35 @@ export default function App() {
     { cmd: './recon --target=L_APETRI --dump-identity', output: 'whoami', isTyping: false }
   ]);
   const [isTerminated, setIsTerminated] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+
+  const onDragStart = (e) => {
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
+    if (isMaximized) return;
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const startMX = e.clientX;
+    const startMY = e.clientY;
+    const startOX = offset.x;
+    const startOY = offset.y;
+    const onMove = (ev) => {
+      setOffset({
+        x: startOX + (ev.clientX - startMX),
+        y: startOY + (ev.clientY - startMY),
+      });
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
 
   // Inject Metadata and Favicon
   useEffect(() => {
@@ -556,21 +583,52 @@ export default function App() {
       >
         <div className="scanline"></div>
 
-        <div className="w-full h-[100dvh] md:max-w-5xl md:h-[90vh] border-0 md:border-2 border-green-900 bg-black flex flex-col relative md:shadow-[0_0_30px_rgba(0,50,0,0.8)] md:rounded-sm overflow-hidden z-10">
+        <div
+          className={
+            isMaximized
+              ? "fixed inset-0 w-screen h-screen bg-black flex flex-col z-10 overflow-hidden"
+              : `w-full ${isMinimized ? 'h-auto' : 'h-[100dvh] md:h-[90vh]'} md:max-w-5xl border-0 md:border-2 border-green-900 bg-black flex flex-col relative md:shadow-[0_0_30px_rgba(0,50,0,0.8)] md:rounded-sm overflow-hidden z-10`
+          }
+          style={!isMaximized ? { transform: `translate(${offset.x}px, ${offset.y}px)` } : undefined}
+        >
 
           {/* Terminal Header */}
-          <div className="bg-green-950/50 border-b-2 border-green-900 px-4 py-2 flex items-center justify-between select-none shrink-0">
+          <div
+            className={`bg-green-950/50 border-b-2 border-green-900 px-4 py-2 flex items-center justify-between select-none shrink-0 ${isMaximized ? '' : 'md:cursor-grab active:md:cursor-grabbing'}`}
+            onPointerDown={onDragStart}
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => { e.stopPropagation(); setIsMinimized(m => !m); }}
+          >
             <div className="flex items-center space-x-2 text-sm text-green-400">
               <Terminal className="w-4 h-4" />
               <span>root@lapetri:~</span>
             </div>
             <div className="flex space-x-2">
-              <div className="w-3 h-3 rounded-full bg-gray-600"></div>
-              <div className="w-3 h-3 rounded-full bg-gray-600"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+              <button
+                type="button"
+                aria-label="close"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); setIsTerminated(true); }}
+                className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-400 transition-colors cursor-pointer border-0 p-0"
+              />
+              <button
+                type="button"
+                aria-label="minimize"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); setIsMinimized(m => !m); }}
+                className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-400 transition-colors cursor-pointer border-0 p-0"
+              />
+              <button
+                type="button"
+                aria-label="maximize"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); setIsMaximized(m => !m); setIsMinimized(false); }}
+                className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-400 transition-colors animate-pulse cursor-pointer border-0 p-0"
+              />
             </div>
           </div>
 
+          {!isMinimized && (
           <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
             {/* Sidebar Navigation (Commands) */}
             <div className="w-full md:w-48 border-b md:border-b-0 md:border-r border-green-900 bg-black p-2 md:p-4 flex flex-row md:flex-col gap-2 select-none overflow-x-auto no-scrollbar shrink-0">
@@ -655,6 +713,7 @@ export default function App() {
               <div ref={bottomRef} className="h-8 shrink-0" />
             </div>
           </div>
+          )}
         </div>
       </div>
     </>
