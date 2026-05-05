@@ -5,7 +5,7 @@ import { Terminal, Cpu, Shield, Zap, ChevronRight, Lock, Mail, MessageSquare, Ke
 const CV_DATA = {
   identity: {
     target: "Luca Apetri",
-    alias: "root",
+    alias: "bogroj",
     contact: "lucaapetri123@gmail.com",
     discord: "@bogroj",
     location: "Romania",
@@ -192,7 +192,7 @@ export default function App() {
 
   useEffect(() => {
     if (bottomRef.current && !isTerminated) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
     }
   }, [commandHistory, isTerminated]);
 
@@ -426,7 +426,7 @@ export default function App() {
         );
       case 'contact':
         return (
-          <div className="animate-fade-in border border-green-500/30 p-6 bg-green-950/20 max-w-2xl">
+          <div className="animate-fade-in border border-green-500/30 p-6 bg-green-950/20 w-full">
             <h3 className="text-green-300 mb-4 border-b border-green-500/30 pb-2 font-bold flex items-center text-xl"><Key className="w-5 h-5 mr-2"/> SECURE_COMMS_LINK</h3>
             <div className="space-y-4 font-mono">
               <a href={`mailto:${CV_DATA.identity.contact}`} className="flex items-center p-3 border border-green-500/30 hover:bg-green-900/40 transition-colors cursor-pointer group no-underline block w-full">
@@ -619,7 +619,7 @@ export default function App() {
                   <div className="text-gray-400 mb-4 flex items-center flex-wrap">
                     <span className="text-green-500 mr-2 whitespace-nowrap">root@lapetri:~$</span>
                     {cmdEntry.isTyping ? (
-                      <span className="text-green-400">
+                      <span className="text-white">
                         <TypewriterText text={cmdEntry.cmd} delay={15} onComplete={() => finishCommand(index)} />
                       </span>
                     ) : (
@@ -644,7 +644,7 @@ export default function App() {
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="bg-transparent border-none outline-none flex-1 text-green-400 font-mono focus:ring-0 p-0 m-0"
+                    className="bg-transparent border-none outline-none flex-1 text-white font-mono focus:ring-0 p-0 m-0"
                     spellCheck="false"
                     autoComplete="off"
                     autoFocus
